@@ -1,0 +1,31 @@
+
+#player.slr-recording {
+    overflow: hidden;
+}
+
+.slr-recording .playerCanvas {
+    width: auto;
+    height: auto;
+}
+
+.slr-controls {
+    margin-top: 10px;
+}
+
+.slr-label {
+    margin-right: .5em;
+}
+
+.slr-input {
+    width: 4em;
+    margin-right: 1em;
+}
+
+.slr-input--fps,
+.slr-input--seconds {
+    width: 3em;
+}
+
+.slr-input--bitrate {
+    width: 7em;
+}
