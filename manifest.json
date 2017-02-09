@@ -10,5 +10,8 @@
             "css": ["styles.css"]
         }
     ],
-    "web_accessible_resources": ["main.js"]
+    "web_accessible_resources": [
+        "main.js",
+        "lib/FileSaver-1.3.3.min.js"
+    ]
 }

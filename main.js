@@ -23,6 +23,7 @@ function removeClass(el, className) {
 var LoopingRecorder = function() {
     this.player = document.getElementById('player');
     this.createUi();
+    this.prefix = 'img';
 };
 
 LoopingRecorder.prototype.createUi = function() {
@@ -34,10 +35,9 @@ LoopingRecorder.prototype.createUi = function() {
     this.heightInput = this.createInput('height', 500);
     this.fpsInput = this.createInput('fps', 30);
     this.secondsInput = this.createInput('seconds', 1);
-    this.bitrateInput = this.createInput('bitrate', 250000000);
 
     var button = document.createElement('button');
-    button.textContent = 'Record';
+    button.textContent = 'Save frames';
     this.controls.appendChild(button);
     button.addEventListener('click', this.startRecording.bind(this));
 };
@@ -65,11 +65,9 @@ LoopingRecorder.prototype.createInput = function(name, value) {
 
 LoopingRecorder.prototype.startRecording = function() {
     this.setUp();
-    gShaderToy.mMediaRecorder.start();
 };
 
 LoopingRecorder.prototype.stopRecording = function() {
-    gShaderToy.mMediaRecorder.stop();
     this.tearDown();
 };
 
@@ -93,19 +91,15 @@ LoopingRecorder.prototype.setUp = function() {
     this.timeSeconds = 0;
     gShaderToy.mTo = 0;
 
-    var bitrate = parseInt(this.bitrateInput.value, 10);
-    this.setRecorderOptions({
-        videoBitsPerSecond: bitrate
-    });
-
-    this.original_RequestAnimationFrame = gShaderToy.mEffect.RequestAnimationFrame;
-    gShaderToy.mEffect.RequestAnimationFrame = this.RequestAnimationFrame.bind(this);
-
     this.original_getRealTime = window.getRealTime;
     window.getRealTime = this.getRealTime.bind(this);
 
     this.fps = parseInt(this.fpsInput.value, 10);
     this.loopSeconds = parseInt(this.secondsInput.value, 10);
+    this.frameNumber = 0;
+
+    this.original_RequestAnimationFrame = gShaderToy.mEffect.RequestAnimationFrame;
+    gShaderToy.mEffect.RequestAnimationFrame = this.RequestAnimationFrame.bind(this);
 };
 
 LoopingRecorder.prototype.tearDown = function() {
@@ -119,77 +113,46 @@ LoopingRecorder.prototype.tearDown = function() {
 
     gShaderToy.mTf = this.original_mTf;
 
-    this.setRecorderOptions();
+    window.getRealTime = this.original_getRealTime;
 
     gShaderToy.mEffect.RequestAnimationFrame = this.original_RequestAnimationFrame;
-
-    window.getRealTime = this.original_getRealTime;
 };
 
-LoopingRecorder.prototype.RequestAnimationFrame = function(id) {
-    this.timeSeconds += 1 / this.fps;
-    if (this.timeSeconds > this.loopSeconds) {
-        this.stopRecording();
-    }
-    this.original_RequestAnimationFrame.call(gShaderToy.mEffect, id);
+LoopingRecorder.prototype.RequestAnimationFrame = function(render) {
+    var patched = function() {
+        this.timeSeconds += 1 / this.fps;
+        if (this.timeSeconds > this.loopSeconds) {
+            this.stopRecording();
+            render();
+        } else {
+            render();
+            this.saveFrame();            
+        }
+    };
+    this.original_RequestAnimationFrame.call(gShaderToy.mEffect, patched.bind(this));
+};
+
+LoopingRecorder.prototype.saveFrame = function() {
+    var totalFrames = this.fps * this.loopSeconds;
+    var digits = totalFrames.toString().length;
+    var frameString = this.pad(this.frameNumber, digits);
+    var filename = this.prefix + frameString + '.png';
+    gShaderToy.mCanvas.toBlob(function(blob) {
+        saveAs(blob, filename);
+    });
+    this.frameNumber += 1;
 };
 
 LoopingRecorder.prototype.getRealTime = function() {
     return this.timeSeconds * 1000;
 };
 
-LoopingRecorder.prototype.setRecorderOptions = function(recorderOptions) {
-    // The following is copied from https://www.shadertoy.com/lib/piLibs.js
-    // changed to allow updating MediaRecorder options
-    function piCreateMediaRecorder(isRecordingCallback, canvas) 
-    {
-        if (piCanMediaRecorded(canvas) == false)
-        {
-            return null;
-        }
-        
-        var mediaRecorder = new MediaRecorder(canvas.captureStream(), recorderOptions);
-        var chunks = [];
-        
-        mediaRecorder.ondataavailable = function(e) 
-        {
-            if (e.data.size > 0) 
-            {
-                chunks.push(e.data);
-            }
-        };
-     
-        mediaRecorder.onstart = function(){ 
-            isRecordingCallback( true );
-        };
-        
-        mediaRecorder.onstop = function()
-        {
-             isRecordingCallback( false );
-             let blob     = new Blob(chunks, {type: "video/webm"});
-             chunks       = [];
-             let videoURL = window.URL.createObjectURL(blob);
-             let url      = window.URL.createObjectURL(blob);
-             let a        = document.createElement("a");
-             document.body.appendChild(a);
-             a.style      = "display: none";
-             a.href       = url;
-             a.download   = "capture.webm";
-             a.click();
-             window.URL.revokeObjectURL(url);
-         };
-        
-        return mediaRecorder;
+LoopingRecorder.prototype.pad = function(number, length) {
+    var str = '' + number;
+    while (str.length < length) {
+        str = '0' + str;
     }
-
-    gShaderToy.mMediaRecorder = piCreateMediaRecorder(function(b) 
-      {
-           var ele = document.getElementById("myRecord");
-           if( b )
-               ele.style.background="url('/img/themes/" + gThemeName + "/recordOn.png')";
-           else
-               ele.style.background="url('/img/themes/" + gThemeName + "/recordOff.png')";
-      }, gShaderToy.mCanvas);
+    return str;
 };
 
 window.loopingRecorder = new LoopingRecorder();
