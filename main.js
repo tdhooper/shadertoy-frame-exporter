@@ -219,6 +219,24 @@ LoopingRecorder.prototype.createUi = function() {
     this.addClass(button, 'slr-save');
     this.controls.appendChild(button);
     button.addEventListener('click', this.startRecording.bind(this));
+
+    this.settingsChanged();
+};
+
+LoopingRecorder.prototype.settingsChanged = function() {
+    var settings = {
+        width: this.widthInput.value,
+        height: this.heightInput.value,
+        fps: this.fpsInput.value,
+        seconds: this.secondsInput.value
+    };
+
+    if (this.preview && JSON.stringify(this.settings) != JSON.stringify(settings)) {
+        this.disablePreview();
+        this.enablePreview();
+    }
+
+    this.settings = settings;
 };
 
 LoopingRecorder.prototype.createInput = function(name, type, value) {
@@ -234,6 +252,9 @@ LoopingRecorder.prototype.createInput = function(name, type, value) {
     input.type = type;
     input.value = value;
     this.addClass(input, 'slr-input');
+
+    input.addEventListener('change', this.settingsChanged.bind(this));
+    input.addEventListener('blur', this.settingsChanged.bind(this));
 
     var control = document.createElement('div');
     this.addClass(control, 'slr-control');
