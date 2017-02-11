@@ -50,8 +50,8 @@ LoopingRecorder.prototype.startRecording = function() {
     window.getRealTime = this.getRealTime.bind(this);
 
     // Store current settings
-    this.fps = parseInt(this.fpsInput.value, 10);
-    this.loopSeconds = parseInt(this.secondsInput.value, 10);
+    this.fps = parseFloat(this.fpsInput.value);
+    this.loopSeconds = parseFloat(this.secondsInput.value);
     this.frameNumber = 0;
 
     // Patch raf-loop

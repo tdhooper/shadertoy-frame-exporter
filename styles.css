@@ -21,11 +21,3 @@
     margin-right: 1em;
 }
 
-.slr-input--fps,
-.slr-input--seconds {
-    width: 3em;
-}
-
-.slr-input--bitrate {
-    width: 7em;
-}
