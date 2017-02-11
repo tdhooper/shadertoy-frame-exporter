@@ -4,24 +4,78 @@ var LoopingRecorder = function() {
     this.createUi();
 };
 
-// Increment time by a fixed amount for each render
-LoopingRecorder.prototype.beforeRender = function() {
-    var frameLength = 1 / this.fps;
-    this.timeSeconds += frameLength;
-    if (this.timeSeconds > this.loopSeconds + frameLength / 2) {
-        this.stopRecording();
-    }
-};
-
 LoopingRecorder.prototype.afterRender = function() {
     if (this.record) {
         this.saveFrame(gShaderToy.mCanvas);
+        this.frameCounter.incrementFrame();
+        if (this.frameCounter.looped) {
+            this.stopRecording();
+        }
+    } else if (this.preview) {
+        this.frameCounter.updateTime();
     }
 };
 
-LoopingRecorder.prototype.startRecording = function() {
+LoopingRecorder.prototype.enablePreview = function() {
+    this.preview = true;
 
+    // Start frame counter
+    this.frameCounter = new FrameCounter(this.fpsInput.value, this.secondsInput.value);
+    this.frameCounter.start();
+
+    this.startPatch();
+
+    // Seek to the beginning
+    gShaderToy.resetTime();
+    gShaderToy.mTo = 0;
+};
+
+LoopingRecorder.prototype.disablePreview = function() {
+    this.preview = false;
+    this.stopPatch();
+};
+
+LoopingRecorder.prototype.startRecording = function() {
     this.record = true;
+
+    // Start frame counter
+    this.frameCounter = new FrameCounter(this.fpsInput.value, this.secondsInput.value);
+    this.frameCounter.start();
+
+    this.startPatch();
+
+    // Start playback if it's currently paused
+    this.original_mIsPaused = gShaderToy.mIsPaused;
+    if (gShaderToy.mIsPaused) {
+        gShaderToy.pauseTime();
+    }
+
+    // Seek to the beginning
+    gShaderToy.resetTime();
+    gShaderToy.mTo = 0;
+
+    // Store current settings
+    this.prefix = this.prefixInput.value;
+};
+
+LoopingRecorder.prototype.stopRecording = function() {
+    this.record = false;
+
+    if ( ! this.preview) {
+        this.stopPatch();
+    }
+
+    // Pause playback if it was originally paused
+    if (this.original_mIsPaused) {
+        gShaderToy.pauseTime();
+    }
+};
+
+LoopingRecorder.prototype.startPatch = function() {
+    if (this.patched) {
+        return;
+    }
+    this.patched = true;
 
     // Add canvas layout styles
     this.addClass(this.player, 'slr-recording');
@@ -33,50 +87,27 @@ LoopingRecorder.prototype.startRecording = function() {
     var height = parseInt(this.heightInput.value, 10);
     gShaderToy.resize(width, height);
 
-    // Start playback if it's currently paused
-    this.original_mIsPaused = gShaderToy.mIsPaused;
-    if (gShaderToy.mIsPaused) {
-        gShaderToy.pauseTime();
-    }
-
-    // Seek to the beginning
-    this.original_mTf = gShaderToy.mTf;
-    gShaderToy.resetTime();
-    gShaderToy.mTo = 0;
-
     // Patch the time counter, so we can step through frames
-    this.timeSeconds = 0;
     this.original_getRealTime = window.getRealTime;
     window.getRealTime = this.getRealTime.bind(this);
 
-    // Store current settings
-    this.fps = parseFloat(this.fpsInput.value);
-    this.loopSeconds = parseFloat(this.secondsInput.value);
-    this.frameNumber = 0;
-    this.prefix = this.prefixInput.value;
-
-    // Patch raf-loop
+    // Patch raf-loop, so we can intercept renders
     this.original_RequestAnimationFrame = gShaderToy.mEffect.RequestAnimationFrame;
     gShaderToy.mEffect.RequestAnimationFrame = this.RequestAnimationFrame.bind(this);
 };
 
-LoopingRecorder.prototype.stopRecording = function() {
 
-    this.record = false;
+LoopingRecorder.prototype.stopPatch = function() {
+    if ( ! this.patched) {
+        return;
+    }
+    this.patched = false;
 
     // Remove canvas layout styles
     this.removeClass(this.player, 'lr-recording');
 
     // Reset canvas to original size
     gShaderToy.resize(this.original_width, this.original_height);
-
-    // Pause playback if it was originally paused
-    if (this.original_mIsPaused) {
-        gShaderToy.pauseTime();
-    }
-
-    // Reset time to what it was before saving
-    gShaderToy.mTf = this.original_mTf;
 
     // Remove time counter patch
     window.getRealTime = this.original_getRealTime;
@@ -89,10 +120,9 @@ LoopingRecorder.prototype.stopRecording = function() {
 /* Shadertoy patches
    ========================================================================== */
 
-// Control what happens before and after each render
+// Control what happens after each render
 LoopingRecorder.prototype.RequestAnimationFrame = function(render) {
     var patched = function() {
-        this.beforeRender();
         render();
         this.afterRender();
     };
@@ -100,7 +130,50 @@ LoopingRecorder.prototype.RequestAnimationFrame = function(render) {
 };
 
 LoopingRecorder.prototype.getRealTime = function() {
-    return this.timeSeconds * 1000;
+    return this.frameCounter.milliseconds();
+};
+
+
+/* Frame Counter
+   ========================================================================== */
+
+var FrameCounter = function(fps, loopSeconds) {
+    this.fps = parseFloat(fps);
+    this.loopSeconds = parseFloat(loopSeconds);
+    this.timeSeconds = 0;
+    this.frameLength = 1 / this.fps;
+    this.totalFrames = Math.floor(this.fps * this.loopSeconds);
+};
+
+FrameCounter.prototype.start = function() {
+    this.startTime = performance.now();
+    this.looped = false;
+};
+
+FrameCounter.prototype.updateTime = function() {
+    this.timeSeconds = (performance.now() - this.startTime) / 1000;
+    this.loopTime();
+};
+
+FrameCounter.prototype.incrementFrame = function() {
+    this.timeSeconds = (this.frameNumber() + 1) * this.frameLength;
+    this.loopTime();
+};
+
+FrameCounter.prototype.loopTime = function() {
+    if (this.frameNumber() > this.totalFrames - 1) {
+        this.looped = true;
+        this.startTime = performance.now();
+        this.timeSeconds = 0;
+    }
+};
+
+FrameCounter.prototype.frameNumber = function() {
+    return Math.floor(this.timeSeconds / this.frameLength);
+};
+
+FrameCounter.prototype.milliseconds = function() {
+    return (this.frameNumber() * this.frameLength) * 1000;
 };
 
 
@@ -118,8 +191,18 @@ LoopingRecorder.prototype.createUi = function() {
     this.secondsInput = this.createInput('seconds', 'number', 1);
     this.prefixInput = this.createInput('prefix', 'text', 'img');
 
+    var previewInput = this.createInput('preview', 'checkbox');
+    previewInput.addEventListener('click', function() {
+        if (previewInput.checked) {
+            this.enablePreview();
+        } else {
+            this.disablePreview();
+        }
+    }.bind(this));
+
     var button = document.createElement('button');
     button.textContent = 'Save frames';
+    this.addClass(button, 'slr-save');
     this.controls.appendChild(button);
     button.addEventListener('click', this.startRecording.bind(this));
 };
@@ -128,7 +211,7 @@ LoopingRecorder.prototype.createInput = function(name, type, value) {
     var id = name;
 
     var label = document.createElement('label');
-    label.textContent = name + ':';
+    label.textContent = name;
     label.setAttribute('for', id);
     this.addClass(label, 'slr-label');
 
@@ -137,10 +220,14 @@ LoopingRecorder.prototype.createInput = function(name, type, value) {
     input.type = type;
     input.value = value;
     this.addClass(input, 'slr-input');
-    this.addClass(input, 'slr-input--' + name);
 
-    this.controls.appendChild(label);
-    this.controls.appendChild(input);
+    var control = document.createElement('div');
+    this.addClass(control, 'slr-control');
+    this.addClass(control, 'slr-control--' + type);
+
+    control.appendChild(label);
+    control.appendChild(input);
+    this.controls.appendChild(control);
 
     return input;
 };
@@ -150,9 +237,9 @@ LoopingRecorder.prototype.createInput = function(name, type, value) {
    ========================================================================== */
 
 LoopingRecorder.prototype.saveFrame = function(canvas) {
-    var totalFrames = this.fps * this.loopSeconds;
+    var totalFrames = this.frameCounter.totalFrames;
     var digits = totalFrames.toString().length;
-    var frameString = this.pad(this.frameNumber, digits);
+    var frameString = this.pad(this.frameCounter.frameNumber(), digits);
     var filename = this.prefix + frameString + '.png';
     canvas.toBlob(function(blob) {
         saveAs(blob, filename);

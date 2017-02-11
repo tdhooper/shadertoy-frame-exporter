@@ -10,14 +10,32 @@
 
 .slr-controls {
     margin-top: 10px;
+    margin-bottom: 10px;
 }
 
-.slr-label {
-    margin-right: .5em;
-}
-
-.slr-input {
-    width: 4em;
+.slr-control {
+    display: inline-block;
     margin-right: 1em;
 }
 
+.slr-input {
+    display: block;
+    width: 4em;
+    margin-top: .5em;
+    font-size: inherit;
+}
+
+.slr-control--checkbox .slr-input {
+    float: left;
+    width: auto;
+    margin: 0;
+    margin-top: 2px;
+}
+
+.slr-control--checkbox .slr-label {
+    margin-left: .5em;
+}
+
+.slr-save {
+    font-size: inherit;
+}
