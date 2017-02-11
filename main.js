@@ -6,8 +6,9 @@ var LoopingRecorder = function() {
 
 // Increment time by a fixed amount for each render
 LoopingRecorder.prototype.beforeRender = function() {
-    this.timeSeconds += 1 / this.fps;
-    if (this.timeSeconds > this.loopSeconds) {
+    var frameLength = 1 / this.fps;
+    this.timeSeconds += frameLength;
+    if (this.timeSeconds > this.loopSeconds + frameLength / 2) {
         this.stopRecording();
     }
 };
