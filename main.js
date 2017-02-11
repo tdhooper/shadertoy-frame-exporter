@@ -5,6 +5,7 @@ var LoopingRecorder = function() {
 };
 
 LoopingRecorder.prototype.afterRender = function() {
+    this.lastFrame = this.frameCounter.frameNumber();
     if (this.record) {
         this.saveFrame(gShaderToy.mCanvas);
         this.frameCounter.incrementFrame();
@@ -14,10 +15,12 @@ LoopingRecorder.prototype.afterRender = function() {
     } else if (this.preview) {
         this.frameCounter.updateTime();
     }
+    this.frameUpdated = this.lastFrame !== this.frameCounter.frameNumber();
 };
 
 LoopingRecorder.prototype.enablePreview = function() {
     this.preview = true;
+    this.frameUpdated = true;
 
     // Start frame counter
     this.frameCounter = new FrameCounter(this.fpsInput.value, this.secondsInput.value);
@@ -37,6 +40,7 @@ LoopingRecorder.prototype.disablePreview = function() {
 
 LoopingRecorder.prototype.startRecording = function() {
     this.record = true;
+    this.frameUpdated = true;
 
     // Start frame counter
     this.frameCounter = new FrameCounter(this.fpsInput.value, this.secondsInput.value);
@@ -120,13 +124,23 @@ LoopingRecorder.prototype.stopPatch = function() {
 /* Shadertoy patches
    ========================================================================== */
 
+LoopingRecorder.prototype.render = function(original_render) {
+    if ( ! this.patched) {
+        original_render();
+        return;
+    }
+    if (this.frameUpdated) {
+        original_render();
+    } else {
+        this.RequestAnimationFrame(original_render);
+    }
+    this.afterRender();
+};
+
 // Control what happens after each render
-LoopingRecorder.prototype.RequestAnimationFrame = function(render) {
-    var patched = function() {
-        render();
-        this.afterRender();
-    };
-    this.original_RequestAnimationFrame.call(gShaderToy.mEffect, patched.bind(this));
+LoopingRecorder.prototype.RequestAnimationFrame = function(original_render) {
+    var render = this.render.bind(this, original_render);
+    this.original_RequestAnimationFrame.call(gShaderToy.mEffect, render);
 };
 
 LoopingRecorder.prototype.getRealTime = function() {
