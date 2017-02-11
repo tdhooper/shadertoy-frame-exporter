@@ -1,7 +1,6 @@
 
 var LoopingRecorder = function() {
     this.player = document.getElementById('player');
-    this.prefix = 'img';
     this.createUi();
 };
 
@@ -53,6 +52,7 @@ LoopingRecorder.prototype.startRecording = function() {
     this.fps = parseFloat(this.fpsInput.value);
     this.loopSeconds = parseFloat(this.secondsInput.value);
     this.frameNumber = 0;
+    this.prefix = this.prefixInput.value;
 
     // Patch raf-loop
     this.original_RequestAnimationFrame = gShaderToy.mEffect.RequestAnimationFrame;
@@ -111,10 +111,11 @@ LoopingRecorder.prototype.createUi = function() {
     this.addClass(this.controls, 'slr-controls');
     this.insertAfter(this.controls, this.player);
 
-    this.widthInput = this.createInput('width', 500);
-    this.heightInput = this.createInput('height', 500);
-    this.fpsInput = this.createInput('fps', 30);
-    this.secondsInput = this.createInput('seconds', 1);
+    this.widthInput = this.createInput('width', 'number', 500);
+    this.heightInput = this.createInput('height', 'number', 500);
+    this.fpsInput = this.createInput('fps', 'number', 30);
+    this.secondsInput = this.createInput('seconds', 'number', 1);
+    this.prefixInput = this.createInput('prefix', 'text', 'img');
 
     var button = document.createElement('button');
     button.textContent = 'Save frames';
@@ -122,7 +123,7 @@ LoopingRecorder.prototype.createUi = function() {
     button.addEventListener('click', this.startRecording.bind(this));
 };
 
-LoopingRecorder.prototype.createInput = function(name, value) {
+LoopingRecorder.prototype.createInput = function(name, type, value) {
     var id = name;
 
     var label = document.createElement('label');
@@ -132,7 +133,7 @@ LoopingRecorder.prototype.createInput = function(name, value) {
 
     var input = document.createElement('input');
     input.id = id;
-    input.type = 'number';
+    input.type = type;
     input.value = value;
     this.addClass(input, 'slr-input');
     this.addClass(input, 'slr-input--' + name);
