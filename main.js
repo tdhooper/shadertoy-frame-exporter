@@ -183,7 +183,8 @@ FrameCounter.prototype.loopTime = function() {
 };
 
 FrameCounter.prototype.frameNumber = function() {
-    return Math.floor(this.timeSeconds / this.frameLength);
+    var timeSeconds = this.timeSeconds + this.frameLength / 2; // avoid float accuracy errors
+    return Math.floor(timeSeconds / this.frameLength);
 };
 
 FrameCounter.prototype.milliseconds = function() {
@@ -279,7 +280,6 @@ FrameExporter.prototype.saveFrame = function(canvas) {
     canvas.toBlob(function(blob) {
         saveAs(blob, filename);
     });
-    this.frameNumber += 1;
 };
 
 FrameExporter.prototype.insertAfter = function(newNode, referenceNode) {
