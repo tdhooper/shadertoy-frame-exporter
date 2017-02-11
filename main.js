@@ -1,10 +1,10 @@
 
-var LoopingRecorder = function() {
+var FrameExporter = function() {
     this.player = document.getElementById('player');
     this.createUi();
 };
 
-LoopingRecorder.prototype.afterRender = function() {
+FrameExporter.prototype.afterRender = function() {
     this.lastFrame = this.frameCounter.frameNumber();
     if (this.record) {
         this.saveFrame(gShaderToy.mCanvas);
@@ -18,7 +18,7 @@ LoopingRecorder.prototype.afterRender = function() {
     this.frameUpdated = this.lastFrame !== this.frameCounter.frameNumber();
 };
 
-LoopingRecorder.prototype.enablePreview = function() {
+FrameExporter.prototype.enablePreview = function() {
     this.preview = true;
     this.frameUpdated = true;
 
@@ -33,12 +33,12 @@ LoopingRecorder.prototype.enablePreview = function() {
     gShaderToy.mTo = 0;
 };
 
-LoopingRecorder.prototype.disablePreview = function() {
+FrameExporter.prototype.disablePreview = function() {
     this.preview = false;
     this.stopPatch();
 };
 
-LoopingRecorder.prototype.startRecording = function() {
+FrameExporter.prototype.startRecording = function() {
     this.record = true;
     this.frameUpdated = true;
 
@@ -62,7 +62,7 @@ LoopingRecorder.prototype.startRecording = function() {
     this.prefix = this.prefixInput.value;
 };
 
-LoopingRecorder.prototype.stopRecording = function() {
+FrameExporter.prototype.stopRecording = function() {
     this.record = false;
 
     if ( ! this.preview) {
@@ -75,14 +75,14 @@ LoopingRecorder.prototype.stopRecording = function() {
     }
 };
 
-LoopingRecorder.prototype.startPatch = function() {
+FrameExporter.prototype.startPatch = function() {
     if (this.patched) {
         return;
     }
     this.patched = true;
 
     // Add canvas layout styles
-    this.addClass(this.player, 'slr-recording');
+    this.addClass(this.player, 'sfe-recording');
 
     // Resize canvas to desired size
     this.original_width = gShaderToy.mCanvas.width;
@@ -101,7 +101,7 @@ LoopingRecorder.prototype.startPatch = function() {
 };
 
 
-LoopingRecorder.prototype.stopPatch = function() {
+FrameExporter.prototype.stopPatch = function() {
     if ( ! this.patched) {
         return;
     }
@@ -124,7 +124,7 @@ LoopingRecorder.prototype.stopPatch = function() {
 /* Shadertoy patches
    ========================================================================== */
 
-LoopingRecorder.prototype.render = function(original_render) {
+FrameExporter.prototype.render = function(original_render) {
     if ( ! this.patched) {
         original_render();
         return;
@@ -138,12 +138,12 @@ LoopingRecorder.prototype.render = function(original_render) {
 };
 
 // Control what happens after each render
-LoopingRecorder.prototype.RequestAnimationFrame = function(original_render) {
+FrameExporter.prototype.RequestAnimationFrame = function(original_render) {
     var render = this.render.bind(this, original_render);
     this.original_RequestAnimationFrame.call(gShaderToy.mEffect, render);
 };
 
-LoopingRecorder.prototype.getRealTime = function() {
+FrameExporter.prototype.getRealTime = function() {
     return this.frameCounter.milliseconds();
 };
 
@@ -194,9 +194,9 @@ FrameCounter.prototype.milliseconds = function() {
 /* User interface
    ========================================================================== */
 
-LoopingRecorder.prototype.createUi = function() {
+FrameExporter.prototype.createUi = function() {
     this.controls = document.createElement('div');
-    this.addClass(this.controls, 'slr-controls');
+    this.addClass(this.controls, 'sfe-controls');
     this.insertAfter(this.controls, this.player);
 
     this.widthInput = this.createInput('width', 'number', 500);
@@ -216,14 +216,14 @@ LoopingRecorder.prototype.createUi = function() {
 
     var button = document.createElement('button');
     button.textContent = 'Save frames';
-    this.addClass(button, 'slr-save');
+    this.addClass(button, 'sfe-save');
     this.controls.appendChild(button);
     button.addEventListener('click', this.startRecording.bind(this));
 
     this.settingsChanged();
 };
 
-LoopingRecorder.prototype.settingsChanged = function() {
+FrameExporter.prototype.settingsChanged = function() {
     var settings = {
         width: this.widthInput.value,
         height: this.heightInput.value,
@@ -239,26 +239,26 @@ LoopingRecorder.prototype.settingsChanged = function() {
     this.settings = settings;
 };
 
-LoopingRecorder.prototype.createInput = function(name, type, value) {
+FrameExporter.prototype.createInput = function(name, type, value) {
     var id = name;
 
     var label = document.createElement('label');
     label.textContent = name;
     label.setAttribute('for', id);
-    this.addClass(label, 'slr-label');
+    this.addClass(label, 'sfe-label');
 
     var input = document.createElement('input');
     input.id = id;
     input.type = type;
     input.value = value;
-    this.addClass(input, 'slr-input');
+    this.addClass(input, 'sfe-input');
 
     input.addEventListener('change', this.settingsChanged.bind(this));
     input.addEventListener('blur', this.settingsChanged.bind(this));
 
     var control = document.createElement('div');
-    this.addClass(control, 'slr-control');
-    this.addClass(control, 'slr-control--' + type);
+    this.addClass(control, 'sfe-control');
+    this.addClass(control, 'sfe-control--' + type);
 
     control.appendChild(label);
     control.appendChild(input);
@@ -271,7 +271,7 @@ LoopingRecorder.prototype.createInput = function(name, type, value) {
 /* Utilities
    ========================================================================== */
 
-LoopingRecorder.prototype.saveFrame = function(canvas) {
+FrameExporter.prototype.saveFrame = function(canvas) {
     var totalFrames = this.frameCounter.totalFrames;
     var digits = totalFrames.toString().length;
     var frameString = this.pad(this.frameCounter.frameNumber(), digits);
@@ -282,11 +282,11 @@ LoopingRecorder.prototype.saveFrame = function(canvas) {
     this.frameNumber += 1;
 };
 
-LoopingRecorder.prototype.insertAfter = function(newNode, referenceNode) {
+FrameExporter.prototype.insertAfter = function(newNode, referenceNode) {
     referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
 };
 
-LoopingRecorder.prototype.addClass = function(el, className) {
+FrameExporter.prototype.addClass = function(el, className) {
     if (el.classList) {
         el.classList.add(className);
     } else {
@@ -294,7 +294,7 @@ LoopingRecorder.prototype.addClass = function(el, className) {
     }
 };
 
-LoopingRecorder.prototype.removeClass = function(el, className) {
+FrameExporter.prototype.removeClass = function(el, className) {
     if (el.classList) {
         el.classList.remove(className);
     } else {
@@ -302,7 +302,7 @@ LoopingRecorder.prototype.removeClass = function(el, className) {
     }
 };
 
-LoopingRecorder.prototype.pad = function(number, length) {
+FrameExporter.prototype.pad = function(number, length) {
     var str = '' + number;
     while (str.length < length) {
         str = '0' + str;
@@ -314,4 +314,4 @@ LoopingRecorder.prototype.pad = function(number, length) {
 /* Init
    ========================================================================== */
 
-window.loopingRecorder = new LoopingRecorder();
+window.frameExporter = new FrameExporter();

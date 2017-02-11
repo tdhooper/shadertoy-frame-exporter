@@ -1,41 +1,41 @@
 
-#player.slr-recording {
+#player.sfe-recording {
     overflow: hidden;
 }
 
-.slr-recording .playerCanvas {
+.sfe-recording .playerCanvas {
     width: auto;
     height: auto;
 }
 
-.slr-controls {
+.sfe-controls {
     margin-top: 10px;
     margin-bottom: 10px;
 }
 
-.slr-control {
+.sfe-control {
     display: inline-block;
     margin-right: 1em;
 }
 
-.slr-input {
+.sfe-input {
     display: block;
     width: 4em;
     margin-top: .5em;
     font-size: inherit;
 }
 
-.slr-control--checkbox .slr-input {
+.sfe-control--checkbox .sfe-input {
     float: left;
     width: auto;
     margin: 0;
     margin-top: 2px;
 }
 
-.slr-control--checkbox .slr-label {
+.sfe-control--checkbox .sfe-label {
     margin-left: .5em;
 }
 
-.slr-save {
+.sfe-save {
     font-size: inherit;
 }
