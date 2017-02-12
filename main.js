@@ -5,7 +5,7 @@ var FrameExporter = function() {
 };
 
 FrameExporter.prototype.afterRender = function() {
-    this.lastFrame = this.frameCounter.frameNumber();
+    this.lastFrame = this.frameCounter.frameNumber;
     if (this.record) {
         this.saveFrame(gShaderToy.mCanvas);
         this.frameCounter.incrementFrame();
@@ -15,7 +15,7 @@ FrameExporter.prototype.afterRender = function() {
     } else if (this.preview) {
         this.frameCounter.updateTime();
     }
-    this.frameUpdated = this.lastFrame !== this.frameCounter.frameNumber();
+    this.frameUpdated = this.lastFrame !== this.frameCounter.frameNumber;
 };
 
 FrameExporter.prototype.enablePreview = function() {
@@ -154,7 +154,6 @@ FrameExporter.prototype.getRealTime = function() {
 var FrameCounter = function(fps, loopSeconds) {
     this.fps = parseFloat(fps);
     this.loopSeconds = parseFloat(loopSeconds);
-    this.timeSeconds = 0;
     this.frameLength = 1 / this.fps;
     this.totalFrames = Math.floor(this.fps * this.loopSeconds);
 };
@@ -162,33 +161,30 @@ var FrameCounter = function(fps, loopSeconds) {
 FrameCounter.prototype.start = function() {
     this.startTime = performance.now();
     this.looped = false;
+    this.frameNumber = 0;
 };
 
 FrameCounter.prototype.updateTime = function() {
-    this.timeSeconds = (performance.now() - this.startTime) / 1000;
-    this.loopTime();
+    var timeSeconds = (performance.now() - this.startTime) / 1000;
+    this.frameNumber = Math.floor(timeSeconds / this.frameLength);
+    this.loopFrames();
 };
 
 FrameCounter.prototype.incrementFrame = function() {
-    this.timeSeconds = (this.frameNumber() + 1) * this.frameLength;
-    this.loopTime();
+    this.frameNumber += 1;
+    this.loopFrames();
 };
 
-FrameCounter.prototype.loopTime = function() {
-    if (this.frameNumber() > this.totalFrames - 1) {
+FrameCounter.prototype.loopFrames = function() {
+    if (this.frameNumber > this.totalFrames - 1) {
         this.looped = true;
         this.startTime = performance.now();
-        this.timeSeconds = 0;
+        this.frameNumber = 0;
     }
 };
 
-FrameCounter.prototype.frameNumber = function() {
-    var timeSeconds = this.timeSeconds + this.frameLength / 2; // avoid float accuracy errors
-    return Math.floor(timeSeconds / this.frameLength);
-};
-
 FrameCounter.prototype.milliseconds = function() {
-    return (this.frameNumber() * this.frameLength) * 1000;
+    return (this.frameNumber * this.frameLength) * 1000;
 };
 
 
@@ -275,7 +271,7 @@ FrameExporter.prototype.createInput = function(name, type, value) {
 FrameExporter.prototype.saveFrame = function(canvas) {
     var totalFrames = this.frameCounter.totalFrames;
     var digits = totalFrames.toString().length;
-    var frameString = this.pad(this.frameCounter.frameNumber(), digits);
+    var frameString = this.pad(this.frameCounter.frameNumber, digits);
     var filename = this.prefix + frameString + '.png';
     canvas.toBlob(function(blob) {
         saveAs(blob, filename);
