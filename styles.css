@@ -16,6 +16,7 @@
 .sfe-control {
     display: inline-block;
     margin-right: 1em;
+    vertical-align: bottom;
 }
 
 .sfe-input {
