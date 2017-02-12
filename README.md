@@ -1,3 +1,9 @@
+#Shadertoy frame exporter
+
+Save PNG frames from Shadertoy
+
+![Screenshot](/screenshot.png?raw=true)
+
 ##Installation
 
 First checkout this repo, then:
