@@ -2,8 +2,7 @@
 
 Save PNG frames from Shadertoy
 
-![Screenshot](/screenshot.png?raw=true)
-<img src="/screenshot.png?raw=true" />
+<img src="/screenshot.png?raw=true" alt="Screenshot" width="658" height="510" />
 
 ##Installation
 
