@@ -4,20 +4,6 @@ var FrameExporter = function() {
     this.createUi();
 };
 
-FrameExporter.prototype.afterRender = function() {
-    this.lastFrame = this.frameCounter.frameNumber;
-    if (this.record) {
-        this.saveFrame(gShaderToy.mCanvas);
-        this.frameCounter.incrementFrame();
-        if (this.frameCounter.looped) {
-            this.stopRecording();
-        }
-    } else if (this.preview) {
-        this.frameCounter.updateTime();
-    }
-    this.frameUpdated = this.lastFrame !== this.frameCounter.frameNumber;
-};
-
 FrameExporter.prototype.enablePreview = function() {
     this.preview = true;
     this.frameUpdated = true;
@@ -124,20 +110,54 @@ FrameExporter.prototype.stopPatch = function() {
 /* Shadertoy patches
    ========================================================================== */
 
+// Will be called for every animation frame, but we don't always want to draw.
+
+// When previewing, only draw when we reach a new frame to simulate reduced
+// frame rate.
+
+// When recording, only increment the frame and draw, after each save is complete.
+
 FrameExporter.prototype.render = function(original_render) {
     if ( ! this.patched) {
         original_render();
         return;
     }
-    if (this.frameUpdated) {
-        original_render();
-    } else {
-        this.RequestAnimationFrame(original_render);
+
+    if (this.preview) {
+
+        if (this.frameUpdated) {
+            original_render();
+        } else {
+            this.RequestAnimationFrame(original_render);
+        }
+
+        var lastFrame = this.frameCounter.frameNumber;
+        this.frameCounter.updateTime();
+        this.frameUpdated = lastFrame !== this.frameCounter.frameNumber;
     }
-    this.afterRender();
+
+    if (this.record) {
+
+        if (this.frameUpdated) {
+
+            this.frameUpdated = false;
+            original_render();
+
+            this.saveFrame(gShaderToy.mCanvas, function() {
+                this.frameCounter.incrementFrame();
+                if (this.frameCounter.looped) {
+                    this.stopRecording();
+                }
+                this.frameUpdated = true;
+            }.bind(this));
+
+        } else {
+            this.RequestAnimationFrame(original_render);
+        }
+    }
 };
 
-// Control what happens after each render
+// Inject our own render function
 FrameExporter.prototype.RequestAnimationFrame = function(original_render) {
     var render = this.render.bind(this, original_render);
     this.original_RequestAnimationFrame.call(gShaderToy.mEffect, render);
@@ -268,13 +288,14 @@ FrameExporter.prototype.createInput = function(name, type, value) {
 /* Utilities
    ========================================================================== */
 
-FrameExporter.prototype.saveFrame = function(canvas) {
+FrameExporter.prototype.saveFrame = function(canvas, done) {
     var totalFrames = this.frameCounter.totalFrames;
     var digits = totalFrames.toString().length;
     var frameString = this.pad(this.frameCounter.frameNumber, digits);
     var filename = this.prefix + frameString + '.png';
     canvas.toBlob(function(blob) {
         saveAs(blob, filename);
+        done();
     });
 };
 
