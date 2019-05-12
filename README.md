@@ -10,7 +10,7 @@ Save PNG frames from Shadertoy
 https://chrome.google.com/webstore/detail/shadertoy-frame-saver/bkompdalfpocndfcbcdajnfkjklbecjn
 
 ### Firefox
-https://addons.mozilla.org/en-GB/firefox/addon/shadertoy-frame-saver/
+https://addons.mozilla.org/en-GB/firefox/addon/shadertoy-frame-exporter/
 
 ## Development
 
