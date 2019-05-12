@@ -1,8 +1,14 @@
 {
     "manifest_version": 2,
     "name": "Shadertoy frame saver",
-    "version": "0.2",
+    "version": "0.2.1",
+    "default_locale": "en",
     "description": "High quality timed frame export from Shadertoy",
+    "icons": {
+        "128": "icon.png"
+    },
+    "author": "tdhooper",
+    "homepage_url": "https://github.com/tdhooper/shadertoy-frame-exporter",
     "content_scripts": [
         {
             "matches": ["*://*.shadertoy.com/*"],
