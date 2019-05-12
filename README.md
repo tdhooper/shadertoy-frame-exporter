@@ -2,9 +2,17 @@
 
 Save PNG frames from Shadertoy
 
-<img src="/screenshot.png?raw=true" alt="Screenshot" width="658" height="510" />
+<img src="/screenshot.png?raw=true" alt="Screenshot" width="640" height="400" />
 
 ## Installation
+
+### Chrome
+https://chrome.google.com/webstore/detail/shadertoy-frame-saver/bkompdalfpocndfcbcdajnfkjklbecjn
+
+### Firefox
+https://addons.mozilla.org/en-GB/firefox/addon/shadertoy-frame-saver/
+
+## Development
 
 First checkout this repo, then:
 
