@@ -10,7 +10,7 @@
     "homepage_url": "https://github.com/tdhooper/shadertoy-frame-exporter",
     "content_scripts": [
         {
-            "matches": ["*://*.shadertoy.com/*"],
+            "matches": ["*://*.shadertoy.com/view/*"],
             "js": ["inject.js"],
             "css": ["styles.css"]
         }
