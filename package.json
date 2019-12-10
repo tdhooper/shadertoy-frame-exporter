@@ -1,0 +1,25 @@
+{
+  "name": "shadertoy-frame-exporter",
+  "version": "1.0.0",
+  "description": "Save PNG frames from Shadertoy",
+  "main": "src/main.js",
+  "scripts": {
+    "build": "./build.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tdhooper/shadertoy-frame-exporter.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tdhooper/shadertoy-frame-exporter/issues"
+  },
+  "homepage": "https://github.com/tdhooper/shadertoy-frame-exporter#readme",
+  "dependencies": {
+    "browserify": "^16.5.0",
+    "file-saver": "^2.0.2",
+    "fs-extra": "^8.1.0",
+    "web-frames-capture": "file:../web-frames-capture"
+  }
+}
