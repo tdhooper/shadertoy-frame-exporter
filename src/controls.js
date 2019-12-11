@@ -61,8 +61,8 @@ class Controls extends EventEmitter {
     const settings = {
       width: parseInt(this.widthInput.value, 10),
       height: parseInt(this.heightInput.value, 10),
-      fps: parseInt(this.fpsInput.value, 10),
-      seconds: parseInt(this.secondsInput.value, 10),
+      fps: parseFloat(this.fpsInput.value),
+      seconds: parseFloat(this.secondsInput.value),
       prefix: this.prefixInput.value,
     };
 
