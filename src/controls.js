@@ -65,12 +65,11 @@ class Controls extends EventEmitter {
       seconds: parseFloat(this.secondsInput.value),
       prefix: this.prefixInput.value,
     };
-
-    if (this.preview && JSON.stringify(this.settings) !== JSON.stringify(settings)) {
-      this.emit('startPreview');
-    }
-
+    const changed = JSON.stringify(this.settings) !== JSON.stringify(settings);
     this.settings = settings;
+    if (changed) {
+      this.emit('settingsChanged');
+    }
   }
 
   createInput(name, type, value) {

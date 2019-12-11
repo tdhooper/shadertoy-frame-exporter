@@ -45,4 +45,12 @@ setTimeout(() => {
       capture = undefined;
     }
   });
+
+  controls.on('settingsChanged', () => {
+    if (preview) {
+      preview.cancel();
+      preview = startPreview(controls.settings, client);
+    }
+  });
+
 }, 1000);
