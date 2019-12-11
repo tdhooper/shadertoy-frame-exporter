@@ -18,6 +18,7 @@
   "homepage": "https://github.com/tdhooper/shadertoy-frame-exporter#readme",
   "dependencies": {
     "browserify": "^16.5.0",
+    "create-mixin": "^3.0.0",
     "file-saver": "^2.0.2",
     "fs-extra": "^8.1.0",
     "web-frames-capture": "file:../web-frames-capture"

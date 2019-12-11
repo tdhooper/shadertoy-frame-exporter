@@ -21,8 +21,21 @@ setTimeout(() => {
       capture.cancel();
     }
     capture = startCapture(controls.settings, client, save);
-    capture.on('finished', () => controls.saveFinished());
-    capture.on('error', () => controls.saveFinished());
+    let wasPaused = false;
+    capture.on('ready', () => {
+      if (client.paused) {
+        wasPaused = true;
+        client.unpause();
+      }
+    });
+    capture.on('captureFinished', () => {
+      if (wasPaused) {
+        client.pause();
+      }
+    });
+    capture.on('finished', () => {
+      controls.saveFinished();
+    });
   });
 
   controls.on('stopCapture', () => {
@@ -37,6 +50,11 @@ setTimeout(() => {
       preview.cancel();
     }
     preview = startPreview(controls.settings, client);
+    preview.on('ready', () => {
+      if (client.paused) {
+        preview.pause();
+      }
+    });
   });
 
   controls.on('stopPreview', () => {
@@ -50,6 +68,23 @@ setTimeout(() => {
     if (preview) {
       preview.cancel();
       preview = startPreview(controls.settings, client);
+      preview.on('ready', () => {
+        if (client.paused) {
+          preview.pause();
+        }
+      });
+    }
+  });
+
+  client.on('paused', () => {
+    if (preview) {
+      preview.pause();
+    }
+  });
+
+  client.on('unpaused', () => {
+    if (preview) {
+      preview.unpause();
     }
   });
 
