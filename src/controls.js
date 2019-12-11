@@ -26,24 +26,43 @@ class Controls extends EventEmitter {
       }
     });
 
-    const button = document.createElement('button');
-    button.textContent = 'Save frames';
-    addClass(button, 'sfe-save');
-    this.controls.appendChild(button);
-    button.addEventListener('click', () => {
-      this.emit('startCapture');
-      // TODO add stop button
+    this.saveButton = document.createElement('button');
+    this.isSaving = false;
+    this.saveButton.textContent = 'Save frames';
+    addClass(this.saveButton, 'sfe-save');
+    this.controls.appendChild(this.saveButton);
+    this.saveButton.addEventListener('click', () => {
+      this.isSaving = ! this.isSaving;
+      if (this.isSaving) {
+        this.emit('startCapture');
+      } else {
+        this.emit('stopCapture');
+      }
+      this.updateSaveButton();
     });
 
     this.settingsChanged();
   }
 
+  saveFinished() {
+    this.isSaving = false;
+    this.updateSaveButton();
+  }
+
+  updateSaveButton() {
+    if (this.isSaving) {
+      this.saveButton.textContent = 'Stop';
+    } else {
+      this.saveButton.textContent = 'Save frames';
+    }
+  }
+
   settingsChanged() {
     const settings = {
-      width: this.widthInput.value,
-      height: this.heightInput.value,
-      fps: this.fpsInput.value,
-      seconds: this.secondsInput.value,
+      width: parseInt(this.widthInput.value, 10),
+      height: parseInt(this.heightInput.value, 10),
+      fps: parseInt(this.fpsInput.value, 10),
+      seconds: parseInt(this.secondsInput.value, 10),
       prefix: this.prefixInput.value,
     };
 

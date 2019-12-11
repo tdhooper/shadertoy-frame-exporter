@@ -23,7 +23,19 @@ class ShadertoyClient extends Client {
 
       // Capture the internal 'renderLoop2' method when it's passed to RequestAnimationFrame
       window.gShaderToy.mEffect.RequestAnimationFrame = (renderLoop2) => {
+
+        // Disable this method so it can't be run again
         window.gShaderToy.mEffect.RequestAnimationFrame = () => {};
+
+        // Start playback if it's currently paused
+        if (window.gShaderToy.mIsPaused) {
+          window.gShaderToy.pauseTime();
+        }
+
+        // Seek to the beginning
+        window.gShaderToy.resetTime();
+
+        // Wrap the render function
         this._render = (milliseconds, quad, callback) => {
           realTime = milliseconds;
           renderLoop2();
@@ -39,6 +51,8 @@ class ShadertoyClient extends Client {
     window.gShaderToy.resize(this.originalWidth, this.originalHeight);
     window.getRealTime = this.originalGetRealTime;
     window.gShaderToy.mEffect.RequestAnimationFrame = this.originalRequestAnimationFrame;
+    window.gShaderToy.resetTime();
+    window.gShaderToy.startRendering();
   }
 }
 

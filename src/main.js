@@ -7,7 +7,7 @@ const Client = require('./client');
 setTimeout(() => {
   const save = (blob, name) => new Promise((resolve) => {
     saveAs(blob, name);
-    resolve();
+    setTimeout(resolve, 100);
   });
 
   let capture;
@@ -21,11 +21,14 @@ setTimeout(() => {
       capture.cancel();
     }
     capture = startCapture(controls.settings, client, save);
+    capture.on('finished', () => controls.saveFinished());
+    capture.on('error', () => controls.saveFinished());
   });
 
   controls.on('stopCapture', () => {
     if (capture) {
       capture.cancel();
+      capture = undefined;
     }
   });
 
@@ -39,6 +42,7 @@ setTimeout(() => {
   controls.on('stopPreview', () => {
     if (preview) {
       preview.cancel();
+      capture = undefined;
     }
   });
-}, 3000);
+}, 1000);
