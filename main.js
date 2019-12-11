@@ -6151,13 +6151,14 @@ module.exports = {
 };
 
 },{}],35:[function(require,module,exports){
+/* eslint-env browser */
 const { saveAs } = require('file-saver');
 const startCapture = require('web-frames-capture/src/main/capture');
 const startPreview = require('web-frames-capture/src/main/preview');
 const Controls = require('./controls');
 const Client = require('./client');
 
-setTimeout(() => {
+const setup = () => {
   const save = (blob, name) => new Promise((resolve) => {
     saveAs(blob, name);
     setTimeout(resolve, 100);
@@ -6240,8 +6241,18 @@ setTimeout(() => {
       preview.unpause();
     }
   });
+};
 
-}, 1000);
+const waitForShaderToy = () => {
+  console.log('p')
+  if (window.gShaderToy) {
+    setup();
+  } else {
+    setTimeout(waitForShaderToy, 100);
+  }
+};
+
+waitForShaderToy();
 
 },{"./client":32,"./controls":33,"file-saver":7,"web-frames-capture/src/main/capture":38,"web-frames-capture/src/main/preview":40}],36:[function(require,module,exports){
 

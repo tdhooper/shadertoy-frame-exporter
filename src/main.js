@@ -1,10 +1,11 @@
+/* eslint-env browser */
 const { saveAs } = require('file-saver');
 const startCapture = require('web-frames-capture/src/main/capture');
 const startPreview = require('web-frames-capture/src/main/preview');
 const Controls = require('./controls');
 const Client = require('./client');
 
-setTimeout(() => {
+const init = () => {
   const save = (blob, name) => new Promise((resolve) => {
     saveAs(blob, name);
     setTimeout(resolve, 100);
@@ -87,5 +88,14 @@ setTimeout(() => {
       preview.unpause();
     }
   });
+};
 
-}, 1000);
+const waitForShaderToy = () => {
+  if (window.gShaderToy) {
+    init();
+  } else {
+    setTimeout(waitForShaderToy, 100);
+  }
+};
+
+waitForShaderToy();
