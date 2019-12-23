@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/tdhooper/shadertoy-frame-exporter#readme",
   "dependencies": {
+    "@jurca/post-message-rpc": "^1.0.1",
     "browserify": "^16.5.0",
     "create-mixin": "^3.0.0",
     "file-saver": "^2.0.2",

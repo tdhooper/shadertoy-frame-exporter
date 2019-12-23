@@ -6023,7 +6023,7 @@ class ShadertoyClient extends mixInto(EventEmitter)(Client) {
 
 module.exports = ShadertoyClient;
 
-},{"./dom":34,"create-mixin":5,"events":6,"web-frames-capture/src/client/client":36}],33:[function(require,module,exports){
+},{"./dom":34,"create-mixin":5,"events":6,"web-frames-capture/src/client/client":37}],33:[function(require,module,exports){
 /* eslint-env browser */
 const EventEmitter = require('events');
 const { addClass, insertAfter } = require('./dom');
@@ -6155,10 +6155,11 @@ module.exports = {
 const { saveAs } = require('file-saver');
 const startCapture = require('web-frames-capture/src/main/capture');
 const startPreview = require('web-frames-capture/src/main/preview');
+const WebSocketEmitter = require('web-frames-capture/src/cli/websocket-events');
 const Controls = require('./controls');
 const Client = require('./client');
 
-const setup = () => {
+const init = () => {
   const save = (blob, name) => new Promise((resolve) => {
     saveAs(blob, name);
     setTimeout(resolve, 100);
@@ -6241,12 +6242,57 @@ const setup = () => {
       preview.unpause();
     }
   });
+
+
+  const params = new URLSearchParams(window.location.search);
+  const port = params.get('port');
+
+  const upload = (blob, name) => {
+    const form = new FormData();
+    form.append('image', blob, name);
+    const f = fetch(`http://localhost:${port}/save`, {
+      method: 'POST',
+      body: form,
+    });
+    return f.then(response => response.text());
+  };
+
+  const ws = new WebSocket('ws://localhost:8080');
+  ws.onopen = () => {
+    capture = startCapture(controls.settings, client, upload);
+    capture.on('finished', () => {
+      ws.send(JSON.stringify({
+        type: 'done',
+      }));
+    });
+    capture.on('ready', () => {
+      ws.send(JSON.stringify({
+        type: 'start',
+        data: controls.settings,
+      }));
+    });
+
+    const wsevents = new WebSocketEmitter();
+
+    wsevents.on('close', () => {
+      window.close();
+    });
+
+    ws.onmessage = (message) => {
+      wsevents.onmessage(message.data);
+    };
+
+    window.addEventListener('beforeunload', () => {
+      ws.send(JSON.stringify({
+        type: 'exit',
+      }));
+    });
+  };
 };
 
 const waitForShaderToy = () => {
-  console.log('p')
   if (window.gShaderToy) {
-    setup();
+    init();
   } else {
     setTimeout(waitForShaderToy, 100);
   }
@@ -6254,7 +6300,26 @@ const waitForShaderToy = () => {
 
 waitForShaderToy();
 
-},{"./client":32,"./controls":33,"file-saver":7,"web-frames-capture/src/main/capture":38,"web-frames-capture/src/main/preview":40}],36:[function(require,module,exports){
+},{"./client":32,"./controls":33,"file-saver":7,"web-frames-capture/src/cli/websocket-events":36,"web-frames-capture/src/main/capture":39,"web-frames-capture/src/main/preview":41}],36:[function(require,module,exports){
+const EventEmitter = require('events');
+
+class WebSocketEmitter extends EventEmitter {
+  onmessage(message) {
+    let data;
+    try {
+      data = JSON.parse(message);
+    } catch (error) {
+      return;
+    }
+    if (data.type !== undefined) {
+      this.emit(data.type, data.data);
+    }
+  }
+}
+
+module.exports = WebSocketEmitter;
+
+},{"events":6}],37:[function(require,module,exports){
 
 class Client {
   constructor(canvas, setup, teardown, render, config) {
@@ -6319,7 +6384,7 @@ class Client {
 
 module.exports = Client;
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 const { Readable } = require('stream');
 
 const createCaptureStream = (capture, next) => new Readable({
@@ -6344,7 +6409,7 @@ const createCaptureStream = (capture, next) => new Readable({
 
 module.exports = createCaptureStream;
 
-},{"stream":29}],38:[function(require,module,exports){
+},{"stream":29}],39:[function(require,module,exports){
 const EventEmitter = require('events');
 const Counter = require('./counter');
 const createCaptureStream = require('./capture-stream');
@@ -6402,7 +6467,7 @@ const startCapture = (config, client, save) => {
 
 module.exports = startCapture;
 
-},{"./capture-stream":37,"./counter":39,"./save-stream":42,"events":6}],39:[function(require,module,exports){
+},{"./capture-stream":38,"./counter":40,"./save-stream":43,"events":6}],40:[function(require,module,exports){
 
 class Counter {
   constructor(fps, duration, { startFrame = 0, quads = false, loop = false } = {}) {
@@ -6462,7 +6527,7 @@ class Counter {
 
 module.exports = Counter;
 
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 const EventEmitter = require('events');
 const Counter = require('./counter');
 
@@ -6522,7 +6587,7 @@ const startPreview = (config, client) => {
 
 module.exports = startPreview;
 
-},{"./counter":39,"events":6}],41:[function(require,module,exports){
+},{"./counter":40,"events":6}],42:[function(require,module,exports){
 
 const pad = (number, length) => {
   let str = `${number}`;
@@ -6544,7 +6609,7 @@ const saveName = (prefix, totalFrames, frameIndex, quads, quad) => {
 
 module.exports = saveName;
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 const { Writable } = require('stream');
 const saveName = require('./save-name');
 
@@ -6565,4 +6630,4 @@ const createSaveStream = (save, prefix, totalFrames, quads) => new Writable({
 
 module.exports = createSaveStream;
 
-},{"./save-name":41,"stream":29}]},{},[35]);
+},{"./save-name":42,"stream":29}]},{},[35]);
