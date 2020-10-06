@@ -1,11 +1,9 @@
-
-#player.sfe-recording {
-    overflow: hidden;
+.block0.sfe-recording {
+    overflow: scroll;
 }
 
 .sfe-recording .playerCanvas {
-    width: auto;
-    height: auto;
+    height: 100%;
 }
 
 .sfe-controls {

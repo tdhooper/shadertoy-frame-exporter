@@ -1,6 +1,7 @@
 
 var FrameExporter = function() {
     this.player = document.getElementById('player');
+    this.wrapper = this.player.parentNode;
     this.createUi();
 };
 
@@ -68,14 +69,13 @@ FrameExporter.prototype.startPatch = function() {
     this.patched = true;
 
     // Add canvas layout styles
-    this.addClass(this.player, 'sfe-recording');
+    this.addClass(this.wrapper, 'sfe-recording');
 
     // Resize canvas to desired size
-    this.original_width = gShaderToy.mCanvas.width;
-    this.original_height = gShaderToy.mCanvas.height;
     var width = parseInt(this.widthInput.value, 10);
     var height = parseInt(this.heightInput.value, 10);
-    gShaderToy.resize(width, height);
+    this.player.style.width = width + 'px';
+    this.player.style.height = height + 'px';
 
     // Patch the time counter, so we can step through frames
     this.original_getRealTime = window.getRealTime;
@@ -94,10 +94,11 @@ FrameExporter.prototype.stopPatch = function() {
     this.patched = false;
 
     // Remove canvas layout styles
-    this.removeClass(this.player, 'lr-recording');
+    this.removeClass(this.wrapper, 'sfe-recording');
 
     // Reset canvas to original size
-    gShaderToy.resize(this.original_width, this.original_height);
+    this.player.style.width = null;
+    this.player.style.height = null;
 
     // Remove time counter patch
     window.getRealTime = this.original_getRealTime;
