@@ -17,6 +17,6 @@
     ],
     "web_accessible_resources": [
         "main.js",
-        "lib/FileSaver-2.0.0.min.js"
+        "lib/FileSaver-2.0.4.min.js"
     ]
 }
