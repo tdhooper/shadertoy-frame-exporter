@@ -144,7 +144,7 @@ FrameExporter.prototype.render = function(original_render) {
             this.frameUpdated = false;
             original_render();
 
-            this.saveFrame(gShaderToy.mCanvas, function() {
+            this.saveFunction(gShaderToy.mCanvas, function() {
                 this.frameCounter.incrementFrame();
                 if (this.frameCounter.looped) {
                     this.stopRecording();
@@ -232,11 +232,34 @@ FrameExporter.prototype.createUi = function() {
         }
     }.bind(this));
 
-    var button = document.createElement('button');
-    button.textContent = 'Save frames';
-    this.addClass(button, 'sfe-save');
-    this.controls.appendChild(button);
-    button.addEventListener('click', this.startRecording.bind(this));
+    this.controls.appendChild(document.createElement('div')); // To force line return for save controls
+
+    // PNG Save part
+    var buttonPNG = document.createElement('button');
+    buttonPNG.textContent = 'Save as png';
+    this.addClass(buttonPNG, 'sfe-save');
+    this.controls.appendChild(buttonPNG);
+    buttonPNG.addEventListener('click', function() {
+        this.saveFunction = FrameExporter.prototype.saveFramePNG;
+        this.startRecording.bind(this)();
+    }.bind(this));
+
+    // JPG Save part
+    var jpgQualityInput = this.createInput('JPG Quality', 'number', 0.8);
+    jpgQualityInput.step = 0.05;
+    this.jpgQualityInput = jpgQualityInput;
+    this.jpgQualityInput.addEventListener('change', function(event) {
+        if (jpgQualityInput.value < 0) jpgQualityInput.value = 0;
+        if (jpgQualityInput.value > 1) jpgQualityInput.value = 1;
+    });
+    var buttonJPG = document.createElement('button');
+    buttonJPG.textContent = 'Save as jpg';
+    this.addClass(buttonJPG, 'sfe-save');
+    this.controls.appendChild(buttonJPG);
+    buttonJPG.addEventListener('click', function() {
+        this.saveFunction = FrameExporter.prototype.saveFrameJPG;
+        this.startRecording.bind(this)();
+    }.bind(this));
 
     this.settingsChanged();
 };
@@ -289,7 +312,7 @@ FrameExporter.prototype.createInput = function(name, type, value) {
 /* Utilities
    ========================================================================== */
 
-FrameExporter.prototype.saveFrame = function(canvas, done) {
+FrameExporter.prototype.saveFramePNG = function (canvas, done) {
     var totalFrames = this.frameCounter.totalFrames;
     var digits = totalFrames.toString().length;
     var frameString = this.pad(this.frameCounter.frameNumber, digits);
@@ -298,6 +321,17 @@ FrameExporter.prototype.saveFrame = function(canvas, done) {
         saveAs(blob, filename);
         setTimeout(done, 100);
     });
+};
+
+FrameExporter.prototype.saveFrameJPG = function (canvas, done) {
+    var totalFrames = this.frameCounter.totalFrames;
+    var digits = totalFrames.toString().length;
+    var frameString = this.pad(this.frameCounter.frameNumber, digits);
+    var filename = this.prefix + frameString + '.jpg';
+    canvas.toBlob(function(blob) {
+        saveAs(blob, filename);
+        setTimeout(done, 100);
+    }, 'image/jpeg', this.jpgQualityInput.value);
 };
 
 FrameExporter.prototype.insertAfter = function(newNode, referenceNode) {

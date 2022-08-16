@@ -5,5 +5,5 @@ function injectScript(file, node) {
     s.setAttribute('src', file);
     th.appendChild(s);
 }
-injectScript( chrome.extension.getURL('/main.js'), 'body');
-injectScript( chrome.extension.getURL('/lib/FileSaver-2.0.4.min.js'), 'body');
+injectScript( chrome.runtime.getURL('/main.js'), 'body');
+injectScript( chrome.runtime.getURL('/lib/FileSaver-2.0.4.min.js'), 'body');
