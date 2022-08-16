@@ -1,8 +1,8 @@
 # Shadertoy frame exporter
 
-Save PNG frames from Shadertoy
+Save frames from Shadertoy to PNG or JPG
 
-<img src="/screenshot.png?raw=true" alt="Screenshot" width="640" height="400" />
+<img src="/screenshot.png?raw=true" alt="Screenshot" width="832" height="618" />
 
 ## Installation
 
