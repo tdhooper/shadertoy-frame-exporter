@@ -1,5 +1,5 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "Shadertoy frame exporter",
     "version": "0.2.6",
     "description": "High quality timed frame export from Shadertoy",
@@ -11,12 +11,12 @@
     "content_scripts": [
         {
             "matches": ["https://www.shadertoy.com/view/*"],
-            "js": ["inject.js"],
-            "css": ["styles.css"]
+            "js": [
+                "main.js",
+                "lib/FileSaver-2.0.4.min.js"
+            ],
+            "css": ["styles.css"],
+            "world": "MAIN"
         }
-    ],
-    "web_accessible_resources": [
-        "main.js",
-        "lib/FileSaver-2.0.4.min.js"
     ]
 }
