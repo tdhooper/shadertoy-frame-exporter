@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Shadertoy frame exporter",
-    "version": "0.2.7",
+    "version": "0.2.8",
     "description": "High quality timed frame export from Shadertoy",
     "icons": {
         "128": "icon.png"
