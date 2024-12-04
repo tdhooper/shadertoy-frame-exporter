@@ -1,6 +1,7 @@
 
 var FrameExporter = function() {
     this.player = document.getElementById('player');
+    this.demogl = document.getElementById('demogl');
     this.wrapper = this.player.parentNode;
     this.createUi();
 };
@@ -74,8 +75,8 @@ FrameExporter.prototype.startPatch = function() {
     // Resize canvas to desired size
     var width = parseInt(this.widthInput.value, 10);
     var height = parseInt(this.heightInput.value, 10);
-    this.player.style.width = width + 'px';
-    this.player.style.height = height + 'px';
+    this.demogl.style.width = width + 'px';
+    this.demogl.style.height = height + 'px';
 
     // Patch the time counter, so we can step through frames
     this.original_getRealTime = window.getRealTime;
@@ -97,8 +98,8 @@ FrameExporter.prototype.stopPatch = function() {
     this.removeClass(this.wrapper, 'sfe-recording');
 
     // Reset canvas to original size
-    this.player.style.width = null;
-    this.player.style.height = null;
+    this.demogl.style.width = null;
+    this.demogl.style.height = null;
 
     // Remove time counter patch
     window.getRealTime = this.original_getRealTime;
